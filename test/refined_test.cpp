@@ -7,6 +7,16 @@ namespace refined = rvarago::refined;
 using even =
     refined::refinement<int, decltype([](auto const x) { return x % 2 == 0; })>;
 
+TEST_CASE("Two refinement types with same base types but different "
+          "predicates are not equal",
+          "[predicate_equality]") {
+  using odd =
+      refined::refinement<int,
+                          decltype([](auto const x) { return x % 2 != 0; })>;
+  STATIC_REQUIRE_FALSE(
+      std::is_same_v<decltype(even::make(0)), decltype(odd::make(0))>);
+}
+
 TEST_CASE(
     "A refinement type must admit only instance that satisfy its predicate",
     "[make][default_policy]") {
