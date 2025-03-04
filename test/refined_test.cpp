@@ -6,9 +6,11 @@ using namespace rvarago::refined;
 
 TEST_CASE(
     "A refinement type must admit only instance that satisfy its predicate",
-    "[make]") {
+    "[make][default_policy]") {
   using even =
       refinement<int, decltype([](auto const x) { return x % 2 == 0; })>;
+
+  STATIC_REQUIRE(std::is_same_v<decltype(even::make(0)), std::optional<even>>);
 
   STATIC_REQUIRE(even::make(0)->value == 0);
   STATIC_REQUIRE(even::make(1) == std::nullopt);
