@@ -1,4 +1,5 @@
 #include <concepts>
+#include <exception>
 #include <functional>
 #include <optional>
 #include <utility>
@@ -34,6 +35,24 @@ template <typename Refinement> struct to_optional {
   constexpr auto err() const -> return_type { return std::nullopt; }
 };
 
+// Report errors as exceptions.
+template <typename Refinement> struct to_exception {
+  using return_type = Refinement;
+
+  struct refinement_exception : std::exception {
+    const char *what() const noexcept override {
+      return "fail to refine argument due to unsastified predicate";
+    }
+  };
+
+  // Returns argument unchanged.
+  constexpr auto ok(Refinement refinement) const -> return_type {
+    return refinement;
+  }
+
+  // Throws a `refinement_exception`.
+  constexpr auto err() const -> return_type { throw refinement_exception{}; }
+};
 } // namespace error
 
 // `refinement<T, Pred>` constraints values `t: T` where `Pred{}(t)` holds.
