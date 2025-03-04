@@ -47,6 +47,8 @@ int main() {
 
 With this example, we notice that not all functions need to access the underlying `int` element and operate entirely on `even`. So we validate and convert the `int` element to `even` at the very beginning and only fall back to `int` at the very last moment, when we actually need it. Both operations should ideally at the edges of our applications.
 
+Although we reported errors via `std::optional` in the example, it's possible to customise it, e.g. to throw an exception.
+
 ## Requirements
 
 C++20
