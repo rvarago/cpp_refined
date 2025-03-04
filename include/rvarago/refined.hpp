@@ -16,28 +16,36 @@ concept policy = requires(Policy p, Refinement refined) {
   typename Refinement::predicate_type;
 
   // On success.
-  { p.ok(refined) } -> std::same_as<typename Policy::return_type>;
+  {
+    p.template ok<Refinement>(refined)
+  } -> std::same_as<typename Policy::template wrapper_type<Refinement>>;
 
   // On error.
-  { p.err() } -> std::same_as<typename Policy::return_type>;
+  {
+    p.template err<Refinement>()
+  } -> std::same_as<typename Policy::template wrapper_type<Refinement>>;
 };
 
 // Report errors as `std::optional<Refinement>`.
-template <typename Refinement> struct to_optional {
-  using return_type = std::optional<Refinement>;
+struct to_optional {
+  template <typename Refinement> using wrapper_type = std::optional<Refinement>;
 
   // Returns an engaged optional.
-  constexpr auto ok(Refinement refinement) const -> return_type {
+  template <typename Refinement>
+  constexpr auto ok(Refinement refinement) const -> wrapper_type<Refinement> {
     return std::optional{std::move(refinement)};
   }
 
   // Returns nullopt.
-  constexpr auto err() const -> return_type { return std::nullopt; }
+  template <typename Refinement>
+  constexpr auto err() const -> wrapper_type<Refinement> {
+    return std::nullopt;
+  }
 };
 
 // Report errors as exceptions.
-template <typename Refinement> struct to_exception {
-  using return_type = Refinement;
+struct to_exception {
+  template <typename Refinement> using wrapper_type = Refinement;
 
   struct refinement_exception : std::exception {
     const char *what() const noexcept override {
@@ -46,13 +54,18 @@ template <typename Refinement> struct to_exception {
   };
 
   // Returns argument unchanged.
-  constexpr auto ok(Refinement refinement) const -> return_type {
+  template <typename Refinement>
+  constexpr auto ok(Refinement refinement) const -> wrapper_type<Refinement> {
     return refinement;
   }
 
   // Throws a `refinement_exception`.
-  constexpr auto err() const -> return_type { throw refinement_exception{}; }
+  template <typename Refinement>
+  constexpr auto err() const -> wrapper_type<Refinement> {
+    throw refinement_exception{};
+  }
 };
+
 } // namespace error
 
 // `refinement<T, Pred>` constraints values `t: T` where `Pred{}(t)` holds.
@@ -67,14 +80,14 @@ template <typename T, std::predicate<T const &> Pred> struct refinement {
   //
   // If `pred(value)` holds, then produces a valid instance by delegating to
   // `policy.ok`. Else reports error via `policy.err`.
-  template <error::policy<refinement<T, Pred>> Policy =
-                error::to_optional<refinement<T, Pred>>>
+  template <error::policy<refinement<T, Pred>> Policy = error::to_optional>
   static constexpr auto make(T value, Pred pred = {}, Policy policy = {})
-      -> Policy::return_type {
+      -> Policy::template wrapper_type<refinement<T, Pred>> {
     if (std::invoke(std::move(pred), value)) {
-      return policy.ok({refinement<T, Pred>{std::move(value)}});
+      return policy.template ok<refinement<T, Pred>>(
+          {refinement<T, Pred>{std::move(value)}});
     } else {
-      return policy.err();
+      return policy.template err<refinement<T, Pred>>();
     }
   }
 
