@@ -68,27 +68,58 @@ struct to_exception {
 
 } // namespace error
 
-// `refinement<T, Pred>` constraints values `t: T` where `Pred(t)` holds.
-template <typename T, std::predicate<T const &> auto Pred> struct refinement {
+// Reusable predicates.
+namespace preds {
+
+// Assumes all values of `T` are valid.
+template <typename T> constexpr auto unconstrained(T const &) -> bool {
+  return true;
+}
+} // namespace preds
+
+template <typename T, std::predicate<T const &> auto Pred, typename... Bases>
+  requires(std::is_same_v<T, typename Bases::value_type> && ...)
+class refinement {
+public:
   using value_type = T;
   using predicate_type = decltype(Pred);
 
+  // `check(value)` holds when `value` satisfies `Pred`.
+  static constexpr auto check(T const &value) -> bool {
+    return std::invoke(Pred, value);
+  }
+
   // Ground value.
   T value;
+
+  template <typename Base>
+    requires(std::is_same_v<Base, Bases> || ...)
+  constexpr /* implicit */ operator Base() const {
+    return Base::unverified_make(value);
+  }
 
   // `make(value)` is the only factory to refinements.
   //
   // If `Pred(value)` holds, then this produces a valid instance of `T` by
   // delegating to `policy.ok`. Else reports the failure via `policy.err`.
-  template <error::policy<refinement<T, Pred>> Policy = error::to_optional>
+  template <
+      error::policy<refinement<T, Pred, Bases...>> Policy = error::to_optional>
   static constexpr auto make(T value, Policy policy = {})
-      -> Policy::template wrapper_type<refinement<T, Pred>> {
-    if (std::invoke(std::move(Pred), value)) {
-      return policy.template ok<refinement<T, Pred>>(
-          {refinement<T, Pred>{std::move(value)}});
+      -> Policy::template wrapper_type<refinement<T, Pred, Bases...>> {
+    if (check(value) && (Bases::check(value) && ...)) {
+      return policy.template ok<refinement<T, Pred, Bases...>>(
+          {refinement<T, Pred, Bases...>{std::move(value)}});
     } else {
-      return policy.template err<refinement<T, Pred>>();
+      return policy.template err<refinement<T, Pred, Bases...>>();
     }
+  }
+
+  // `unverified_make(value)` produces a refinement **by-passing** the predicate
+  // checking, i.e. with *no* verification whatsover.
+  //
+  // Use it cautiously, i.e. only when absolutely sure it's fine.
+  static constexpr auto unverified_make(T value) -> refinement {
+    return refinement{std::move(value)};
   }
 
 private:

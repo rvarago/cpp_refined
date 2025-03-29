@@ -30,6 +30,21 @@ TEST_CASE(
   STATIC_REQUIRE(even::make(3) == std::nullopt);
 }
 
+TEST_CASE("Two refinement types with same ground types and nominally defined "
+          "subtyping are implicily convertible",
+          "[predicate_subtyping]") {
+  using even_lt_10 =
+      refined::refinement<int, [](auto const x) { return x < 10; }, even>;
+
+  STATIC_REQUIRE(std::is_constructible_v<even, even_lt_10>);
+
+  constexpr even valid = *even_lt_10::make(8);
+  STATIC_REQUIRE(valid.value == 8);
+
+  constexpr std::optional<even> invalid = even_lt_10::make(10);
+  STATIC_REQUIRE(invalid == std::nullopt);
+}
+
 TEST_CASE("A to_exception policy should throw on invalid argument",
           "[error_policy][to_exception]") {
 
