@@ -68,22 +68,22 @@ struct to_exception {
 
 } // namespace error
 
-// `refinement<T, Pred>` constraints values `t: T` where `Pred{}(t)` holds.
-template <typename T, std::predicate<T const &> Pred> struct refinement {
+// `refinement<T, Pred>` constraints values `t: T` where `Pred(t)` holds.
+template <typename T, std::predicate<T const &> auto Pred> struct refinement {
   using value_type = T;
-  using predicate_type = Pred;
+  using predicate_type = decltype(Pred);
 
-  // Base value.
+  // Ground value.
   T value;
 
-  // `make(value, pred)` is the only factory to refinements.
+  // `make(value)` is the only factory to refinements.
   //
-  // If `pred(value)` holds, then produces a valid instance by delegating to
-  // `policy.ok`. Else reports error via `policy.err`.
+  // If `Pred(value)` holds, then this produces a valid instance of `T` by
+  // delegating to `policy.ok`. Else reports the failure via `policy.err`.
   template <error::policy<refinement<T, Pred>> Policy = error::to_optional>
-  static constexpr auto make(T value, Pred pred = {}, Policy policy = {})
+  static constexpr auto make(T value, Policy policy = {})
       -> Policy::template wrapper_type<refinement<T, Pred>> {
-    if (std::invoke(std::move(pred), value)) {
+    if (std::invoke(std::move(Pred), value)) {
       return policy.template ok<refinement<T, Pred>>(
           {refinement<T, Pred>{std::move(value)}});
     } else {

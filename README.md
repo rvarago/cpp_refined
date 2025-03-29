@@ -2,7 +2,7 @@
 
 > Types + Predicates in C++, sort-of
 
-A Refinement Type constrains a base type with a predicate, such that we can only produce valid instances (according to the predicate) of the base type. This is often a language-level feature that comes with a type system that can ergonomically express relationships, e.g. subtyping, flow. [LiquidHaskell](https://ucsd-progsys.github.io/liquidhaskell/) is an example
+A Refinement Type constrains a ground type with a predicate, such that we can only produce valid instances (according to the predicate) of the ground type. This is often a language-level feature that comes with a type system that can ergonomically express relationships, e.g. subtyping, flow. [LiquidHaskell](https://ucsd-progsys.github.io/liquidhaskell/) is an example
 
 C++ does not have Refinement Types, so this library is a clumsy attempt to bring some of their benefits to the community.
 
@@ -22,12 +22,12 @@ Additionally, this has a nice second-order effect of pushing validation to the e
 
 ```cpp
 using even =
-      rvarago::refined::refinement<int, decltype([](auto const x) { return x % 2 == 0; })>;
+      rvarago::refined::refinement<int, [](auto const x) { return x % 2 == 0; }>;
       
 auto do_something_else(even v) -> void {
-  // deep down in the call stack do we access its base type.
+  // deep down in the call stack do we access its ground type.
   int const x = v.value;
-  // act on the base type as we see fit. 
+  // act on the ground type as we see fit. 
 }
 
 auto do_something(even v) -> void {
@@ -45,7 +45,7 @@ int main() {
 }
 ```
 
-With this example, we notice that not all functions need to access the underlying `int` element and operate entirely on `even`. So we validate and convert the `int` element to `even` at the very beginning and only fall back to `int` at the very last moment, when we actually need it. Both operations should ideally at the edges of our applications.
+With this example, we notice that not all functions need access to the underlying `int` element and operate entirely on `even`. So we validate and convert the `int` element into `even` at the very beginning and only fall back to `int` at the very last moment, when we actually need it. Both operations should ideally at the edges of our applications.
 
 Although we reported errors via `std::optional` in the example, it's possible to customise it, e.g. to throw an exception.
 
