@@ -21,11 +21,11 @@ Additionally, this has a nice second-order effect of pushing validation to the e
 ## Example
 
 ```cpp
-// a refinement for ints constrained to be even.
+// a refinement for all x of type int such that x is even.
 using even =
       rvarago::refined::refinement<int, [](auto const x) { return x % 2 == 0; }>;
 
-// refinements can be further refined, e.g. all x such that x is even and x < 10.
+// refinements can be further refined, e.g. all x of type such that x is even **and x < 10**.
 using even_lt_10 =
       rvarago::refined::refinement<int, [](auto const x) { return x < 10; }, even>;
 
