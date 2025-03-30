@@ -78,7 +78,8 @@ template <typename T> constexpr auto unconstrained(T const &) -> bool {
 } // namespace preds
 
 template <typename T, std::predicate<T const &> auto Pred, typename... Bases>
-  requires(std::is_same_v<T, typename Bases::value_type> && ...)
+  requires((std::is_same_v<T, typename Bases::value_type> && ...) &&
+           (std::predicate<typename Bases::predicate_type, T const &> && ...))
 class refinement {
 public:
   using value_type = T;
