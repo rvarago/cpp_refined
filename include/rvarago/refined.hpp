@@ -85,7 +85,7 @@ public:
       -> Policy::template wrapper_type<refinement> {
     if (verify(value) && (Bases::verify(value) && ...)) {
       return policy.template ok<refinement>(
-          {refinement::unverified_make(std::move(value))});
+          {unverified_make(std::move(value))});
     } else {
       return policy.template err<refinement>();
     }
