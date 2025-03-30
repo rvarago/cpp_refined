@@ -91,7 +91,7 @@ public:
     }
   }
 
-  // Accessors to the ground type.
+  // Accessors to the ground value.
   constexpr auto value() && -> T { return std::move(value_); }
   constexpr auto value() const & -> T const & { return value_; }
   //
