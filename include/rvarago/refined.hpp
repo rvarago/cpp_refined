@@ -102,15 +102,14 @@ public:
   //
   // If `Pred(value)` holds, then this produces a valid instance of `T` by
   // delegating to `policy.ok`. Else reports the failure via `policy.err`.
-  template <
-      error::policy<refinement<T, Pred, Bases...>> Policy = error::to_optional>
+  template <error::policy<refinement> Policy = error::to_optional>
   static constexpr auto make(T value, Policy policy = {})
-      -> Policy::template wrapper_type<refinement<T, Pred, Bases...>> {
+      -> Policy::template wrapper_type<refinement> {
     if (check(value) && (Bases::check(value) && ...)) {
-      return policy.template ok<refinement<T, Pred, Bases...>>(
-          {refinement<T, Pred, Bases...>{std::move(value)}});
+      return policy.template ok<refinement>(
+          {refinement::unverified_make(std::move(value))});
     } else {
-      return policy.template err<refinement<T, Pred, Bases...>>();
+      return policy.template err<refinement>();
     }
   }
 
