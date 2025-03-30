@@ -83,7 +83,7 @@ public:
   template <error::policy<refinement> Policy = error::to_optional>
   static constexpr auto make(T value, Policy policy = {})
       -> Policy::template wrapper_type<refinement> {
-    if (check(value) && (Bases::check(value) && ...)) {
+    if (verify(value) && (Bases::verify(value) && ...)) {
       return policy.template ok<refinement>(
           {refinement::unverified_make(std::move(value))});
     } else {
@@ -106,8 +106,8 @@ public:
     return Base::unverified_make(value_);
   }
 
-  // `check(value)` holds when `value` satisfies `Pred`.
-  static constexpr auto check(T const &value) -> bool {
+  // `verify(value)` holds when `value` satisfies `Pred`.
+  static constexpr auto verify(T const &value) -> bool {
     return std::invoke(Pred, value);
   }
 
