@@ -102,6 +102,10 @@ public:
     }
   }
 
+  // Implicitly converts to a `Base` (in `Bases...`) refinement.
+  //
+  // This is safe because we verified `Base`'s predicate upon construction
+  // by computing logically-conjuction of all `Bases...`'s predicates.
   template <typename Base>
     requires(std::is_same_v<Base, Bases> || ...)
   constexpr /* implicit */ operator Base() const {
