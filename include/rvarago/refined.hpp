@@ -84,9 +84,6 @@ public:
   using value_type = T;
   using predicate_type = decltype(Pred);
 
-  // Ground value.
-  T value;
-
   // `make(value)` is the only factory to refinements.
   //
   // If `Pred(value)` holds, then this produces a valid instance of `T` by
@@ -102,6 +99,11 @@ public:
     }
   }
 
+  // Accessors to the ground type.
+  constexpr auto value() && -> T { return std::move(value_); }
+  constexpr auto value() const & -> T const & { return value_; }
+  //
+
   // Implicitly converts to a `Base` (in `Bases...`) refinement.
   //
   // This is safe because we verified `Base`'s predicate upon construction
@@ -109,7 +111,7 @@ public:
   template <typename Base>
     requires(std::is_same_v<Base, Bases> || ...)
   constexpr /* implicit */ operator Base() const {
-    return Base::unverified_make(value);
+    return Base::unverified_make(value_);
   }
 
   // `check(value)` holds when `value` satisfies `Pred`.
@@ -126,7 +128,10 @@ public:
   }
 
 private:
-  explicit constexpr refinement(T val) : value{std::move(val)} {}
+  explicit constexpr refinement(T value) : value_{std::move(value)} {}
+
+  // Ground value.
+  T value_;
 };
 
 } // namespace rvarago::refined

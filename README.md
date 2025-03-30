@@ -30,9 +30,9 @@ using even_lt_10 =
       rvarago::refined::refinement<int, [](auto const x) { return x < 10; }, even>;
 
 auto do_something_else(even v) -> void {
-  // deep down in the call stack do we access its ground type.
-  int const x = v.value;
-  // act on the ground type as we see fit. 
+  // deep down in the call stack do we access even's ground type.
+  int const x = v.value();
+  // act on the ground type (int) as we see fit. 
 }
 
 auto do_something(even_lt_10 v) -> void {
