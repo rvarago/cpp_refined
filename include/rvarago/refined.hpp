@@ -84,19 +84,8 @@ public:
   using value_type = T;
   using predicate_type = decltype(Pred);
 
-  // `check(value)` holds when `value` satisfies `Pred`.
-  static constexpr auto check(T const &value) -> bool {
-    return std::invoke(Pred, value);
-  }
-
   // Ground value.
   T value;
-
-  template <typename Base>
-    requires(std::is_same_v<Base, Bases> || ...)
-  constexpr /* implicit */ operator Base() const {
-    return Base::unverified_make(value);
-  }
 
   // `make(value)` is the only factory to refinements.
   //
@@ -111,6 +100,17 @@ public:
     } else {
       return policy.template err<refinement>();
     }
+  }
+
+  template <typename Base>
+    requires(std::is_same_v<Base, Bases> || ...)
+  constexpr /* implicit */ operator Base() const {
+    return Base::unverified_make(value);
+  }
+
+  // `check(value)` holds when `value` satisfies `Pred`.
+  static constexpr auto check(T const &value) -> bool {
+    return std::invoke(Pred, value);
   }
 
   // `unverified_make(value)` produces a refinement **by-passing** the predicate
