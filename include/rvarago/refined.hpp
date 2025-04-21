@@ -8,7 +8,10 @@ namespace rvarago::refined {
 
 // Properties a refinement implements.
 struct traits {
-  // Comparison operations with the spaceship operator.
+  // Equality comparison (`==`, `!=`).
+  bool equality{false};
+
+  // Comparison operations (`<`, `>`, etc) with the spaceship operator.
   bool ordered{false};
 };
 
@@ -63,6 +66,11 @@ public:
   static constexpr auto unverified_make(T value) -> refinement {
     return refinement{std::move(value)};
   }
+
+  friend constexpr auto operator==(refinement const &, refinement const &)
+      -> bool
+    requires(Traits.equality)
+  = default;
 
   friend constexpr auto operator<=>(refinement const &, refinement const &)
     requires(Traits.ordered)
