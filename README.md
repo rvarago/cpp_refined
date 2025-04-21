@@ -55,6 +55,8 @@ With this example, we notice that not all functions need access to the underlyin
 
 Although we reported errors via `std::optional` in the example, we can customise it, e.g. to throw an exception with the built-in `even::make<refined::error::to_exception>` or define a whole user-provided policy.
 
+Furthermore, with `rvarago::refined::traits` we can extend a refinement with properties, such as ordered with the spaceship operator.
+
 ## Requirements
 
 C++20
@@ -62,9 +64,6 @@ C++20
 ## Usage
 
 This is a header-only library. See [`refined.hpp`](include/rvarago/refined.hpp).
-
-- (Optional) Link against the INTERFACE `rvarago::refined` target in your CMake build.
-- Include `rvarago/refined.hpp`
 
 ## Contributing
 

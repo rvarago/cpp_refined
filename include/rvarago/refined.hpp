@@ -6,7 +6,14 @@
 
 namespace rvarago::refined {
 
-template <typename T, std::predicate<T const &> auto Pred, typename... Bases>
+// Properties a refinement implements.
+struct traits {
+  // Comparison operations with the spaceship operator.
+  bool ordered{false};
+};
+
+template <typename T, std::predicate<T const &> auto Pred, traits Traits = {},
+          typename... Bases>
   requires((std::is_same_v<T, typename Bases::value_type> && ...) &&
            (std::predicate<typename Bases::predicate_type, T const &> && ...))
 class refinement {
@@ -56,6 +63,10 @@ public:
   static constexpr auto unverified_make(T value) -> refinement {
     return refinement{std::move(value)};
   }
+
+  friend constexpr auto operator<=>(refinement const &, refinement const &)
+    requires(Traits.ordered)
+  = default;
 
 private:
   explicit constexpr refinement(T value) : value_{std::move(value)} {}
