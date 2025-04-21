@@ -59,6 +59,15 @@ TEST_CASE("A to_exception policy should throw on invalid argument",
                     refined::error::to_exception::refinement_exception);
 }
 
+TEST_CASE("A refinement can be equality comparable", "[traits][equality]") {
+
+  using ref_cmp = refined::refinement<int, [](auto const &) { return true; },
+                                      refined::traits{.equality = true}>;
+
+  STATIC_REQUIRE(*ref_cmp::make(1) == *ref_cmp::make(1));
+  STATIC_REQUIRE(*ref_cmp::make(1) != *ref_cmp::make(2));
+}
+
 TEST_CASE("A refinement can be ordered", "[traits][sorted]") {
 
   using ref_cmp = refined::refinement<int, [](auto const &) { return true; },
