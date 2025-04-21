@@ -45,6 +45,6 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ${PROJECT_NAME}
   COMMAND ${CMAKE_COMMAND} -E env CT_TEST_PATH=${CMAKE_BINARY_DIR} ctest
           --output-on-failure
-  COMMAND clang-format -i ${ALL_CPP_FILES}
-  COMMAND clang-tidy ${ALL_CPP_FILES} -extra-arg=-std=c++20 --
-          -I${CMAKE_SOURCE_DIR}/include)
+  COMMAND clang-format --dry-run -Werror ${ALL_CPP_FILES}
+  COMMAND clang-tidy ${ALL_CPP_FILES} --warnings-as-errors='*' -p
+          ${CMAKE_BINARY_DIR}/compilation_commands.json)
