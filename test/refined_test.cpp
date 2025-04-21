@@ -34,11 +34,13 @@ TEST_CASE("Two refinement types with same ground types and nominally defined "
           "subtyping are implicily convertible",
           "[predicate_subtyping]") {
   using even_lt_10 =
-      refined::refinement<int, [](auto const x) { return x < 10; }, even>;
+      refined::refinement<int, [](auto const x) { return x < 10; },
+                          refined::traits{.ordered = true}, even>;
 
   STATIC_REQUIRE(std::is_constructible_v<even, even_lt_10>);
 
   constexpr even valid = *even_lt_10::make(8);
+
   STATIC_REQUIRE(valid.value() == 8);
 
   constexpr std::optional<even> invalid = even_lt_10::make(10);
@@ -55,4 +57,13 @@ TEST_CASE("A to_exception policy should throw on invalid argument",
   STATIC_REQUIRE(even::make<refined::error::to_exception>(0).value() == 0);
   REQUIRE_THROWS_AS(even::make<refined::error::to_exception>(1),
                     refined::error::to_exception::refinement_exception);
+}
+
+TEST_CASE("A refinement can be ordered", "[traits][sorted]") {
+
+  using ref_cmp = refined::refinement<int, [](auto const &) { return true; },
+                                      refined::traits{.ordered = true}>;
+
+  STATIC_REQUIRE(*ref_cmp::make(1) < *ref_cmp::make(2));
+  STATIC_REQUIRE(!(*ref_cmp::make(2) < *ref_cmp::make(1)));
 }
